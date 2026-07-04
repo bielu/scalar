@@ -106,3 +106,22 @@ app.use(
   }),
 )
 ```
+
+### AsyncAPI
+
+AsyncAPI documents work the same way — point `url` at one and the reference auto-detects the type. Add `documentType: 'asyncapi'` on a source to be explicit:
+
+```typescript
+import { apiReference } from '@scalar/nestjs-api-reference'
+
+app.use(
+  '/reference',
+  apiReference({
+    sources: [
+      { title: 'Streaming API', url: '/asyncapi.json', documentType: 'asyncapi' },
+    ],
+  }),
+)
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.

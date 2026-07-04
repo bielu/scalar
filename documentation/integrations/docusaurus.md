@@ -115,6 +115,20 @@ Run the example using
 npm run playground
 ```
 
+## AsyncAPI
+
+AsyncAPI documents work the same way — point `url` at one and the reference auto-detects the type. Add `documentType: 'asyncapi'` on a source to be explicit:
+
+```typescript
+configuration: {
+  sources: [
+    { title: 'Streaming API', url: '/asyncapi.json', documentType: 'asyncapi' },
+  ],
+}
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ## Config
 
 These configuration options are a WIP as this plugin is still in beta

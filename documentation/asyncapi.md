@@ -41,5 +41,25 @@ Both filters operate on the navigation tree itself: operations that don't match 
 
 Each picker is only shown when there is more than one option to choose from.
 
+## Use with integrations
+
+AsyncAPI documents work the same way as OpenAPI documents across every integration: point `url`/`content` (or a `sources` entry) at an AsyncAPI document and the reference auto-detects the type from its content (an `asyncapi` version field vs an `openapi`/`swagger` one) — there's nothing extra to configure.
+
+If you'd rather be explicit — for example to show the right label before the document has loaded — most integrations also accept an optional `documentType` (or `document_type` in Python/Rust) hint on a source:
+
+```javascript
+Scalar.createApiReference('#app', {
+  sources: [
+    {
+      title: 'Streaming API',
+      url: 'https://cdn.jsdelivr.net/npm/@scalar/galaxy/dist/asyncapi/latest.yaml',
+      documentType: 'asyncapi',
+    },
+  ],
+})
+```
+
+This is a forward-compatible hint, not a requirement: omitting it is fine, since the renderer detects the type from the document itself either way.
+
 > [!NOTE]
 > AsyncAPI support is still a work in progress, so not every part of the specification is rendered yet. The progress is tracked on GitHub in [issue #7080](https://github.com/scalar/scalar/issues/7080) — subscribe there to receive updates.

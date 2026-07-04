@@ -56,6 +56,23 @@ await fastify.register(import('@scalar/fastify-api-reference'), {
 })
 ```
 
+## AsyncAPI
+
+AsyncAPI documents work the same way — point `content`/`url` at one (or a `sources` entry) and the reference auto-detects the type. Add `documentType: 'asyncapi'` on a source to be explicit:
+
+```typescript
+await fastify.register(import('@scalar/fastify-api-reference'), {
+  routePrefix: '/reference',
+  configuration: {
+    sources: [
+      { title: 'Streaming API', url: '/asyncapi.json', documentType: 'asyncapi' },
+    ],
+  },
+})
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ## Logging
 
 The plugin is compatible with the Fastify logger. You can configure the log level for the routes registered by the plugin:

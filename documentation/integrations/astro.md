@@ -100,6 +100,24 @@ import { ScalarComponent } from '@scalar/astro'
 }} />
 ```
 
+### AsyncAPI
+
+AsyncAPI documents work the same way — point `url` at one and the reference auto-detects the type. Add `documentType: 'asyncapi'` on a source to be explicit:
+
+```astro
+---
+import { ScalarComponent } from '@scalar/astro'
+---
+
+<ScalarComponent configuration={{
+  sources: [
+    { title: 'Streaming API', url: '/asyncapi.json', documentType: 'asyncapi' },
+  ],
+}} />
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ### Proxy URL
 
 If you need to proxy API requests (for CORS or other reasons), you can configure a proxy URL:

@@ -104,6 +104,23 @@ export default defineNuxtConfig({
 })
 ```
 
+## AsyncAPI
+
+AsyncAPI documents work the same way — point `url` at one and the reference auto-detects the type. Add `documentType: 'asyncapi'` on a source to be explicit:
+
+```typescript
+export default defineNuxtConfig({
+  modules: ['@scalar/nuxt'],
+  scalar: {
+    sources: [
+      { title: 'Streaming API', url: '/asyncapi.json', documentType: 'asyncapi' },
+    ],
+  },
+})
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ## Using with Tailwind CSS
 
 If your Nuxt project uses Tailwind CSS v4, you need to set the CSS layer order so that Tailwind's utility classes take priority over Scalar's styles. Add this to the top of your main CSS file (for example, `assets/css/main.css`):

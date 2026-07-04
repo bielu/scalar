@@ -83,6 +83,22 @@ app.get('/scalar', Scalar({
 }))
 ```
 
+### AsyncAPI
+
+AsyncAPI documents work the same way — point `url` at one and the reference auto-detects the type. Add `documentType: 'asyncapi'` on a source to be explicit:
+
+```typescript
+import { Scalar } from '@scalar/hono-api-reference'
+
+app.get('/scalar', Scalar({
+  sources: [
+    { title: 'Streaming API', url: '/asyncapi.json', documentType: 'asyncapi' },
+  ],
+}))
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ### Markdown for LLMs
 
 If you want to create a Markdown version of the API reference (for LLMs), install `@scalar/openapi-to-markdown`:
