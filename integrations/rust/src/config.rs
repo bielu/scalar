@@ -39,6 +39,16 @@ impl AgentOptions {
     }
 }
 
+/// The type of a document rendered by the Scalar API reference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DocumentType {
+    /// An OpenAPI/Swagger document.
+    OpenApi,
+    /// An AsyncAPI document.
+    AsyncApi,
+}
+
 /// A single OpenAPI document source.
 ///
 /// Used in the `sources` array for multi-document configuration.
@@ -52,6 +62,12 @@ pub struct Source {
     /// Optional Agent Scalar options for this document.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub agent: Option<AgentOptions>,
+
+    /// The type of the document ('openapi' or 'asyncapi').
+    ///
+    /// If not set, the renderer auto-detects the type from the document content.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub document_type: Option<DocumentType>,
 }
 
 impl Source {
@@ -60,12 +76,28 @@ impl Source {
         Self {
             url: url.into(),
             agent: None,
+            document_type: None,
+        }
+    }
+
+    /// Create an AsyncAPI source with the given URL.
+    pub fn asyncapi(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            agent: None,
+            document_type: Some(DocumentType::AsyncApi),
         }
     }
 
     /// Set Agent Scalar options for this source.
     pub fn with_agent(mut self, agent: AgentOptions) -> Self {
         self.agent = Some(agent);
+        self
+    }
+
+    /// Set the document type for this source.
+    pub fn with_document_type(mut self, document_type: DocumentType) -> Self {
+        self.document_type = Some(document_type);
         self
     }
 }

@@ -2,7 +2,7 @@ use rust_embed::RustEmbed;
 use serde_json::Value;
 
 pub mod config;
-pub use config::{AgentOptions, Source};
+pub use config::{AgentOptions, DocumentType, Source};
 
 /// Embedded UI assets
 #[derive(RustEmbed)]
@@ -343,7 +343,7 @@ pub mod warp {
 mod tests {
     use crate::{
         get_asset, get_asset_with_mime, get_mime_type, scalar_html, scalar_html_default,
-        scalar_html_from_json, scalar_html_from_json_default, AgentOptions, Source,
+        scalar_html_from_json, scalar_html_from_json_default, AgentOptions, DocumentType, Source,
     };
     use serde_json::json;
 
@@ -496,6 +496,25 @@ mod tests {
         assert!(html.contains("doc-key"));
         assert!(html.contains("https://api.example.com/v1.json"));
         assert!(html.contains("https://api.example.com/v2.json"));
+    }
+
+    #[test]
+    fn test_source_document_type_serialization() {
+        let source = Source::asyncapi("https://api.example.com/asyncapi.json");
+        let value = serde_json::to_value(&source).unwrap();
+        assert_eq!(value["documentType"], "asyncapi");
+        assert_eq!(value["url"], "https://api.example.com/asyncapi.json");
+
+        let source_with_builder =
+            Source::new("https://api.example.com/asyncapi.json").with_document_type(DocumentType::AsyncApi);
+        assert_eq!(serde_json::to_value(&source_with_builder).unwrap(), value);
+    }
+
+    #[test]
+    fn test_source_document_type_omitted_when_unset() {
+        let source = Source::new("https://api.example.com/openapi.json");
+        let value = serde_json::to_value(&source).unwrap();
+        assert!(value.get("documentType").is_none());
     }
 
     #[test]
