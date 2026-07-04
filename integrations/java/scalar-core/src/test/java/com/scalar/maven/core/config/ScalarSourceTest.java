@@ -1,5 +1,6 @@
 package com.scalar.maven.core.config;
 
+import com.scalar.maven.core.enums.ScalarDocumentType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,18 @@ class ScalarSourceTest {
             assertThat(source.getTitle()).isEqualTo(title);
             assertThat(source.getSlug()).isEqualTo(slug);
             assertThat(source.isDefault()).isEqualTo(isDefault);
+        }
+
+        @Test
+        @DisplayName("should create source with an explicit document type")
+        void shouldCreateSourceWithDocumentType() {
+            String url = "https://api.example.com/asyncapi.json";
+            String title = "Streaming API";
+            String slug = "streaming-api";
+            Boolean isDefault = true;
+            ScalarSource source = new ScalarSource(url, title, slug, isDefault, ScalarDocumentType.ASYNCAPI);
+            assertThat(source.getUrl()).isEqualTo(url);
+            assertThat(source.getDocumentType()).isEqualTo(ScalarDocumentType.ASYNCAPI);
         }
     }
 
@@ -99,6 +112,19 @@ class ScalarSourceTest {
 
             source.setAgent(null);
             assertThat(source.getAgent()).isNull();
+        }
+
+        @Test
+        @DisplayName("should set and get documentType")
+        void shouldSetAndGetDocumentType() {
+            ScalarSource source = new ScalarSource();
+            assertThat(source.getDocumentType()).isNull();
+
+            source.setDocumentType(ScalarDocumentType.ASYNCAPI);
+            assertThat(source.getDocumentType()).isEqualTo(ScalarDocumentType.ASYNCAPI);
+
+            source.setDocumentType(null);
+            assertThat(source.getDocumentType()).isNull();
         }
     }
 }

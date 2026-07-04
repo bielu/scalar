@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scalar.maven.core.authentication.ScalarAuthenticationOptions;
 import com.scalar.maven.core.authentication.schemes.ScalarApiKeySecurityScheme;
+import com.scalar.maven.core.config.ScalarSource;
+import com.scalar.maven.core.enums.ScalarDocumentType;
 import com.scalar.maven.core.enums.ScalarTheme;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +41,23 @@ class JacksonJsonSerializerTest {
         // @JsonInclude(NON_NULL) drops unset fields rather than emitting null
         assertThat(json.has("url")).isFalse();
         assertThat(json.has("customCss")).isFalse();
+    }
+
+    @Test
+    @DisplayName("serializes a source's documentType and omits it when unset")
+    void serializesSourceDocumentType() throws Exception {
+        ScalarSource asyncApiSource = new ScalarSource("/asyncapi.json", "Streaming API", "streaming-api", true,
+                ScalarDocumentType.ASYNCAPI);
+        ScalarSource openApiSource = new ScalarSource("/openapi.json", "API", "api", false);
+
+        ScalarConfiguration config = new ScalarConfiguration();
+        config.setSources(List.of(asyncApiSource, openApiSource));
+
+        JsonNode json = serializeAndParse(config);
+        JsonNode sources = json.get("sources");
+
+        assertThat(sources.get(0).get("documentType").asText()).isEqualTo("asyncapi");
+        assertThat(sources.get(1).has("documentType")).isFalse();
     }
 
     @Test

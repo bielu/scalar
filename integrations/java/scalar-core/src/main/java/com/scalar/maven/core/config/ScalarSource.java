@@ -1,6 +1,7 @@
 package com.scalar.maven.core.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.scalar.maven.core.enums.ScalarDocumentType;
 
 /**
  * Defines an OpenAPI Reference source
@@ -38,6 +39,12 @@ public class ScalarSource {
     private ScalarAgentOptions agent;
 
     /**
+     * The type of the document ('openapi' or 'asyncapi').
+     * optional; if not set, the renderer auto-detects the type from the document content.
+     */
+    private ScalarDocumentType documentType;
+
+    /**
      * Creates an OpenAPI Reference source
      * {@link #url} must be set
      */
@@ -57,6 +64,23 @@ public class ScalarSource {
         this.title = title;
         this.slug = slug;
         this.isDefault = isDefault;
+    }
+
+    /**
+     * Creates an OpenAPI Reference source with an explicit document type
+     *
+     * @param url          the url of the OpenAPI specification
+     * @param title        the display title of the OpenAPI specification
+     * @param slug         the url slug of the OpenAPI specification
+     * @param isDefault    whether this is the default source
+     * @param documentType the type of the document ('openapi' or 'asyncapi')
+     */
+    public ScalarSource(String url, String title, String slug, Boolean isDefault, ScalarDocumentType documentType) {
+        this.url = url;
+        this.title = title;
+        this.slug = slug;
+        this.isDefault = isDefault;
+        this.documentType = documentType;
     }
 
     /**
@@ -147,5 +171,23 @@ public class ScalarSource {
      */
     public void setAgent(ScalarAgentOptions agent) {
         this.agent = agent;
+    }
+
+    /**
+     * Gets the type of the document.
+     *
+     * @return the document type or null
+     */
+    public ScalarDocumentType getDocumentType() {
+        return documentType;
+    }
+
+    /**
+     * Sets the type of the document.
+     *
+     * @param documentType the document type
+     */
+    public void setDocumentType(ScalarDocumentType documentType) {
+        this.documentType = documentType;
     }
 }
