@@ -145,6 +145,16 @@ class TestOpenAPISource:
         assert source.content == content
         assert source.url is None
 
+    def test_with_document_type(self):
+        """Test OpenAPISource with document_type set to asyncapi"""
+        source = OpenAPISource(url="/asyncapi.json", document_type="asyncapi")
+        assert source.document_type == "asyncapi"
+
+    def test_document_type_defaults_to_none(self):
+        """Test OpenAPISource document_type defaults to None"""
+        source = OpenAPISource(url="/openapi.json")
+        assert source.document_type is None
+
     def test_with_agent_config(self):
         """Test OpenAPISource with agent configuration"""
         source = OpenAPISource(
@@ -535,6 +545,47 @@ class TestGetScalarApiReference:
         # Should use content, not url
         assert '"content":' in html_content
         assert '"openapi": "3.0.0"' in html_content
+
+    def test_per_source_document_type_in_config(self):
+        """Test that OpenAPISource with document_type is serialized as documentType"""
+        sources = [
+            OpenAPISource(title="Streaming API", url="/asyncapi.json", document_type="asyncapi"),
+        ]
+        config = ScalarConfig(sources=sources, title="Test")
+        response = get_scalar_api_reference(config)
+
+        html_content = response.content.decode()
+        assert '"sources":' in html_content
+        assert '"documentType": "asyncapi"' in html_content
+
+    def test_per_source_document_type_omitted_when_unset(self):
+        """Test that documentType is omitted from a source when document_type is not set"""
+        sources = [OpenAPISource(title="API", url="/openapi.json")]
+        config = ScalarConfig(sources=sources, title="Test")
+        response = get_scalar_api_reference(config)
+
+        html_content = response.content.decode()
+        assert "documentType" not in html_content
+
+    def test_top_level_document_type_with_openapi_url(self):
+        """Test that document_type is serialized as documentType alongside openapi_url"""
+        config = ScalarConfig(
+            openapi_url="/asyncapi.json",
+            document_type="asyncapi",
+            title="Test",
+        )
+        response = get_scalar_api_reference(config)
+
+        html_content = response.content.decode()
+        assert '"documentType": "asyncapi"' in html_content
+
+    def test_top_level_document_type_omitted_when_unset(self):
+        """Test that documentType is omitted when document_type is not set"""
+        config = ScalarConfig(openapi_url="/openapi.json", title="Test")
+        response = get_scalar_api_reference(config)
+
+        html_content = response.content.decode()
+        assert "documentType" not in html_content
 
     def test_document_download_type(self):
         """Test document download type configuration"""

@@ -3,7 +3,7 @@ from enum import Enum
 from django.http import HttpResponse
 from ninja.openapi.docs import DocsBase
 from pydantic import BaseModel, ConfigDict, Field
-from typing import List, Dict, Any, Union, Optional
+from typing import List, Dict, Any, Union, Optional, Literal
 
 
 class Layout(Enum):
@@ -101,6 +101,12 @@ class OpenAPISource(BaseModel):
         description="Direct OpenAPI content as string (JSON/YAML) or dictionary. Mutually exclusive with url.",
     )
 
+    document_type: Optional[Literal["openapi", "asyncapi"]] = Field(
+        default=None,
+        serialization_alias="documentType",
+        description="The type of the document ('openapi' or 'asyncapi'). If not set, the renderer auto-detects the type from the document content.",
+    )
+
     default: bool = Field(
         default=False,
         description="Whether this source should be the default when multiple sources are provided.",
@@ -130,6 +136,11 @@ class ScalarConfig(BaseModel):
     content: Optional[Union[str, Dict[str, Any]]] = Field(
         default=None,
         description="Directly pass an OpenAPI/Swagger document as a string (JSON or YAML) or as a dictionary. If sources are provided, this parameter is ignored.",
+    )
+
+    document_type: Optional[Literal["openapi", "asyncapi"]] = Field(
+        default=None,
+        description="The type of the document passed via openapi_url or content ('openapi' or 'asyncapi'). If not set, the renderer auto-detects the type from the document content. Ignored if sources are provided.",
     )
 
     sources: Optional[List[OpenAPISource]] = Field(
@@ -395,13 +406,17 @@ def get_scalar_api_reference(config: ScalarConfig) -> HttpResponse:
         # Convert Pydantic models to dictionaries, filtering out None values
         sources_dict = []
         for source in config.sources:
-            source_dict = source.model_dump(exclude_none=True)
+            source_dict = source.model_dump(exclude_none=True, by_alias=True)
             sources_dict.append(source_dict)
         js_config["sources"] = sources_dict
     elif config.content is not None:
         js_config["content"] = config.content
+        if config.document_type is not None:
+            js_config["documentType"] = config.document_type
     elif config.openapi_url is not None:
         js_config["url"] = config.openapi_url
+        if config.document_type is not None:
+            js_config["documentType"] = config.document_type
     else:
         # Default to the standard Django Ninja OpenAPI URL
         js_config["url"] = "/api/openapi.json"

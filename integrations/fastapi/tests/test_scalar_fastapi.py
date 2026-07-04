@@ -192,6 +192,52 @@ class TestGetScalarApiReference:
         assert '"agent"' in html_content
         assert '"key": "my-key"' in html_content
 
+    def test_per_source_document_type_in_config(self):
+        """Test that OpenAPISource with document_type is serialized as documentType"""
+        response = get_scalar_api_reference(
+            sources=[
+                OpenAPISource(
+                    title="Streaming API",
+                    url="/asyncapi.json",
+                    document_type="asyncapi",
+                ),
+            ],
+            title="Test",
+        )
+        html_content = response.body.decode()
+        assert '"sources"' in html_content
+        assert '"documentType": "asyncapi"' in html_content
+
+    def test_per_source_document_type_omitted_when_unset(self):
+        """Test that documentType is omitted from a source when document_type is not set"""
+        response = get_scalar_api_reference(
+            sources=[
+                OpenAPISource(title="API", url="/openapi.json"),
+            ],
+            title="Test",
+        )
+        html_content = response.body.decode()
+        assert "documentType" not in html_content
+
+    def test_top_level_document_type_with_openapi_url(self):
+        """Test that document_type is serialized as documentType alongside openapi_url"""
+        response = get_scalar_api_reference(
+            openapi_url="/asyncapi.json",
+            document_type="asyncapi",
+            title="Test",
+        )
+        html_content = response.body.decode()
+        assert '"documentType": "asyncapi"' in html_content
+
+    def test_top_level_document_type_omitted_when_unset(self):
+        """Test that documentType is omitted when document_type is not set"""
+        response = get_scalar_api_reference(
+            openapi_url="/openapi.json",
+            title="Test",
+        )
+        html_content = response.body.decode()
+        assert "documentType" not in html_content
+
     def test_theme_parameter_all_values(self):
         """Test all theme enum values work correctly"""
         for theme in Theme:

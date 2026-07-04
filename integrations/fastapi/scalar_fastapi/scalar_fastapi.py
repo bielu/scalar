@@ -109,6 +109,12 @@ class OpenAPISource(BaseModel):
         description="Direct OpenAPI content as string (JSON/YAML) or dictionary. Mutually exclusive with url.",
     )
 
+    document_type: Optional[Literal["openapi", "asyncapi"]] = Field(
+        default=None,
+        serialization_alias="documentType",
+        description="The type of the document ('openapi' or 'asyncapi'). If not set, the renderer auto-detects the type from the document content.",
+    )
+
     default: bool = Field(
         default=False,
         description="Whether this source should be the default when multiple sources are provided.",
@@ -245,6 +251,15 @@ def get_scalar_api_reference(
             """
             Directly pass an OpenAPI/Swagger document as a string (JSON or YAML) or as a dictionary.
             If provided, this takes precedence over openapi_url. If sources are provided, this parameter is ignored.
+            """
+        ),
+    ] = None,
+    document_type: Annotated[
+        Literal["openapi", "asyncapi"] | None,
+        Doc(
+            """
+            The type of the document passed via openapi_url or content ('openapi' or 'asyncapi').
+            If not set, the renderer auto-detects the type from the document content. Ignored if sources are provided.
             """
         ),
     ] = None,
@@ -574,13 +589,17 @@ def get_scalar_api_reference(
         # Convert Pydantic models to dictionaries, filtering out None values
         sources_dict = []
         for source in sources:
-            source_dict = source.model_dump(exclude_none=True)
+            source_dict = source.model_dump(exclude_none=True, by_alias=True)
             sources_dict.append(source_dict)
         config["sources"] = sources_dict
     elif content is not None:
         config["content"] = content
+        if document_type is not None:
+            config["documentType"] = document_type
     elif openapi_url is not None:
         config["url"] = openapi_url
+        if document_type is not None:
+            config["documentType"] = document_type
     else:
         # Default to the standard FastAPI openapi URL
         config["url"] = "/openapi.json"
