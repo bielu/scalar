@@ -185,6 +185,20 @@ scalar.sources[1].title=Beta API
 scalar.sources[1].slug=v2
 ```
 
+### AsyncAPI
+
+AsyncAPI documents work the same way — point a source's `url` at one and the reference auto-detects the type. Add `documentType: asyncapi` to be explicit:
+
+```yaml
+scalar:
+  sources:
+    - url: https://api.example.com/asyncapi.json
+      title: Streaming API
+      documentType: asyncapi
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ### UI Customization
 
 ```properties
