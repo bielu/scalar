@@ -372,4 +372,32 @@ public class ScalarOptionsMapperTests
         configuration.Sources.Should().ContainSingle(s => s.Url == "openapi/v1.json");
         configuration.Sources.Should().ContainSingle(s => s.Url == "asyncapi/events.json");
     }
+
+    [Fact]
+    public void GetSources_ShouldSetDocumentType_ForAsyncApiDocument()
+    {
+        // Arrange
+        var options = new ScalarOptions();
+        options.AddAsyncApiDocument("events");
+
+        // Act
+        var configuration = options.ToScalarConfiguration();
+
+        // Assert
+        configuration.Sources.Should().ContainSingle().Which.DocumentType.Should().Be(DocumentType.AsyncApi);
+    }
+
+    [Fact]
+    public void GetSources_ShouldOmitDocumentType_ForOpenApiDocument()
+    {
+        // Arrange
+        var options = new ScalarOptions();
+        options.AddDocument("v1");
+
+        // Act
+        var configuration = options.ToScalarConfiguration();
+
+        // Assert
+        configuration.Sources.Should().ContainSingle().Which.DocumentType.Should().BeNull();
+    }
 }

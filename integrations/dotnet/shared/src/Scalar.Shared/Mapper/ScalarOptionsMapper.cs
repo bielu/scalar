@@ -82,7 +82,8 @@ internal static partial class ScalarOptionsMapper
                 Title = document.Title ?? document.Name,
                 Url = routePattern.Replace(DocumentName, document.Name),
                 Default = document.IsDefault,
-                Agent = document.Agent
+                Agent = document.Agent,
+                DocumentType = document.DocumentType == DocumentType.AsyncApi ? DocumentType.AsyncApi : null
             };
         }
     }
