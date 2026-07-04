@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "vite build && pnpm build:styles && vue-tsc -p tsconfig.build.json",
-    "build:styles": "shx cp -r src/styles dist && tailwindcss --optimize -i src/style.css -o dist/style.css && cat dist/vue-styles.css >> dist/style.css",
+    "build:styles": "shx cp -r src/styles dist && tailwindcss --optimize -i src/style.css -o dist/style.css && shx cat dist/vue-styles.css >> dist/style.css",
     "dev": "vite --config playground/vite.config.ts",
     "test": "vitest",
     "types:check": "vue-tsc --noEmit"
