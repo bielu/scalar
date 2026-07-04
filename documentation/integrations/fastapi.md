@@ -63,6 +63,29 @@ async def scalar_html():
     )
 ```
 
+### AsyncAPI
+
+AsyncAPI documents work the same way — point `openapi_url`/`content` at one (or a `sources` entry) and the reference auto-detects the type. Add `document_type="asyncapi"` to be explicit:
+
+```python
+from scalar_fastapi import get_scalar_api_reference, OpenAPISource
+
+@app.get("/scalar", include_in_schema=False)
+async def scalar_html():
+    return get_scalar_api_reference(
+        sources=[
+            OpenAPISource(
+                title="Streaming API",
+                url="/asyncapi.json",
+                document_type="asyncapi"
+            ),
+        ],
+        title="My API Documentation"
+    )
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
 ### Direct OpenAPI Content
 
 You can pass OpenAPI content directly as a string or dictionary:
@@ -123,6 +146,7 @@ Currently available [configuration options](../configuration.md) are listed belo
 - `content` (default `None`) - Directly pass an OpenAPI/Swagger document as a string (JSON or YAML) or as a dictionary. If `sources` are provided, this parameter is ignored.
 - `sources` (default `None`) - Add multiple OpenAPI documents to render all of them. Each source can have a title, slug, url, content, and default flag.
 - `title` (default `"Scalar"`) - The title of the API reference page
+- `document_type` (default `None`) - The type of the document passed via `openapi_url` or `content` (`"openapi"` or `"asyncapi"`). If not set, the renderer auto-detects the type from the document content. Ignored if `sources` are provided.
 
 ### OpenAPISource Configuration
 
@@ -132,6 +156,7 @@ When using multiple sources, each `OpenAPISource` can be configured with:
 - `slug` (default `None`) - URL identifier for the API. If not provided, will be auto-generated from the title or index.
 - `url` (default `None`) - URL to the OpenAPI document (JSON or YAML). Mutually exclusive with content.
 - `content` (default `None`) - Direct OpenAPI content as string (JSON/YAML) or dictionary. Mutually exclusive with url.
+- `document_type` (default `None`) - The type of the document (`"openapi"` or `"asyncapi"`). If not set, the renderer auto-detects the type from the document content.
 - `default` (default `False`) - Whether this source should be the default when multiple sources are provided.
 - `agent` (default `None`) - Optional Agent config for this source (`key`, `disabled`). See [Agent](../configuration.md#agent) for details.
 

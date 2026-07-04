@@ -90,6 +90,7 @@ Currently available [configuration options](../configuration.md) are listed belo
 - `content` (default `None`) - Directly pass an OpenAPI/Swagger document as a string (JSON or YAML) or as a dictionary. If `sources` are provided, this parameter is ignored.
 - `sources` (default `None`) - Add multiple OpenAPI documents to render all of them. Each source can have a title, slug, url, content, and default flag.
 - `title` (default `"Scalar"`) - The title of the API reference page
+- `document_type` (default `None`) - The type of the document passed via `openapi_url` or `content` (`"openapi"` or `"asyncapi"`). If not set, the renderer auto-detects the type from the document content. Ignored if `sources` are provided.
 
 ### OpenAPISource Configuration
 
@@ -99,6 +100,7 @@ When using multiple sources, each `OpenAPISource` can be configured with:
 - `slug` (default `None`) - URL identifier for the API. If not provided, will be auto-generated from the title or index.
 - `url` (default `None`) - URL to the OpenAPI document (JSON or YAML). Mutually exclusive with content.
 - `content` (default `None`) - Direct OpenAPI content as string (JSON/YAML) or dictionary. Mutually exclusive with url.
+- `document_type` (default `None`) - The type of the document (`"openapi"` or `"asyncapi"`). If not set, the renderer auto-detects the type from the document content.
 - `default` (default `False`) - Whether this source should be the default when multiple sources are provided.
 - `agent` (default `None`) - Agent configuration for this source. Object with optional `key` (string) for production and optional `disabled` (boolean) to turn off for this source.
 
