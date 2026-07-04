@@ -189,3 +189,21 @@ let config = json!({ "sources": serde_json::to_value(&sources).unwrap() });
 
 For more details, see [Agent](../configuration.md#agent) and [How to get an Agent key](../guides/agent/key.md).
 
+### AsyncAPI
+
+AsyncAPI documents work the same way — point a source's `url` at one and the reference auto-detects the type. Use `Source::asyncapi(url)` or `with_document_type` to be explicit:
+
+```rust
+use scalar_api_reference::{scalar_html_default, DocumentType, Source};
+use serde_json::json;
+
+let sources = vec![
+    Source::asyncapi("https://api.example.com/asyncapi.json"),
+    // Equivalent: Source::new(url).with_document_type(DocumentType::AsyncApi)
+];
+let config = json!({ "sources": serde_json::to_value(&sources).unwrap() });
+let html = scalar_html_default(&config);
+```
+
+See the [AsyncAPI documentation](../asyncapi.md) for more.
+
