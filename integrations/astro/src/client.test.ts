@@ -126,6 +126,33 @@ describe('client', () => {
     expect(created[0]?.configuration).toEqual({ url: 'https://example.com/openapi.json' })
   })
 
+  it('preserves the documentType of a source', async () => {
+    const created = installScalar()
+    createContainer({
+      sources: [
+        {
+          title: 'Streaming API',
+          url: 'https://example.com/asyncapi.json',
+          documentType: 'asyncapi',
+        },
+      ],
+    })
+
+    initScalarClient()
+    await flush()
+
+    expect(created).toHaveLength(1)
+    expect(created[0]?.configuration).toEqual({
+      sources: [
+        {
+          title: 'Streaming API',
+          url: 'https://example.com/asyncapi.json',
+          documentType: 'asyncapi',
+        },
+      ],
+    })
+  })
+
   it('does not mount the same container twice', async () => {
     const created = installScalar()
     createContainer({ url: 'https://example.com/openapi.json' })

@@ -511,6 +511,53 @@ describe('fastifyApiReference', () => {
     expect(fastify.hasPlugin('@scalar/fastify-api-reference')).toBeTruthy()
   })
 
+  it('preserves the documentType of a source', async () => {
+    fastify = Fastify({
+      logger: false,
+    })
+
+    await fastify.register(fastifyApiReference, {
+      routePrefix: '/reference',
+      configuration: {
+        sources: [
+          {
+            title: 'Streaming API',
+            url: '/asyncapi.json',
+            documentType: 'asyncapi',
+          },
+        ],
+      },
+    })
+
+    const address = await fastify.listen({ port: 0 })
+    const response = await fetch(`${address}/reference/`)
+    expect(await response.text()).toContain('"documentType": "asyncapi"')
+  })
+
+  it('serves an AsyncAPI document via content intact at the OpenAPI document endpoint', async () => {
+    fastify = Fastify({
+      logger: false,
+    })
+
+    const asyncApiDocument = {
+      asyncapi: '3.0.0',
+      info: { title: 'Streaming API', version: '1.0.0' },
+      channels: {},
+    }
+
+    await fastify.register(fastifyApiReference, {
+      routePrefix: '/reference',
+      configuration: {
+        content: asyncApiDocument,
+      },
+    })
+
+    const address = await fastify.listen({ port: 0 })
+    const response = await fetch(`${address}/reference/openapi.json`)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(asyncApiDocument)
+  })
+
   it('serves Scalar UI when only sources option is provided', async () => {
     fastify = Fastify({
       logger: false,

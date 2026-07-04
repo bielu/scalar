@@ -413,6 +413,47 @@ describe('ScalarDocusaurus', () => {
       expect(route.configuration).toContain('"theme": "purple"')
     })
 
+    it('preserves the documentType of a source', () => {
+      const mockContext = {
+        siteConfig: {
+          baseUrl: '/',
+          themeConfig: {
+            navbar: {
+              items: [],
+            },
+          },
+        },
+      } as any
+
+      const mockActions = {
+        addRoute: vi.fn(),
+      } as any
+
+      const plugin = ScalarDocusaurus(mockContext, {
+        label: 'Scalar',
+        route: '/scalar',
+      })
+
+      plugin.contentLoaded?.({
+        content: {
+          configuration: {
+            sources: [
+              {
+                title: 'Streaming API',
+                url: 'https://example.com/asyncapi.json',
+                documentType: 'asyncapi',
+              },
+            ],
+          },
+        } as any,
+        actions: mockActions,
+      })
+
+      const route = mockActions.addRoute.mock.calls[0][0]
+      expect(route.configuration).toContain('"documentType": "asyncapi"')
+      expect(route.configuration).toContain('"url": "https://example.com/asyncapi.json"')
+    })
+
     it('preserves function-valued configuration options through serialization', () => {
       const mockContext = {
         siteConfig: {

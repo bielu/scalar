@@ -97,6 +97,25 @@ describe('apiReference', () => {
     expect(response.text).not.toContain('Test API')
   })
 
+  it('preserves the documentType of a source', async () => {
+    const app = express()
+    app.use(
+      apiReference({
+        sources: [
+          {
+            title: 'Streaming API',
+            url: 'https://example.com/asyncapi.json',
+            documentType: 'asyncapi',
+          },
+        ],
+      }),
+    )
+
+    const response = await request(app).get('/')
+    expect(response.text).toContain('"documentType": "asyncapi"')
+    expect(response.text).toContain('https://example.com/asyncapi.json')
+  })
+
   it('sets correct content type and status', async () => {
     const app = express()
     app.use(apiReference({}))

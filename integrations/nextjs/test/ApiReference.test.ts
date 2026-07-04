@@ -43,4 +43,33 @@ describe('ApiReference', () => {
 
     await expect(response.text()).resolves.toBe('___HTMLDoc___')
   })
+
+  it('preserves the documentType of a source', () => {
+    renderApiReferenceSpy.mockReturnValueOnce('___HTMLDoc___')
+
+    const handler = ApiReference({
+      sources: [
+        {
+          title: 'Streaming API',
+          url: 'https://example.com/asyncapi.json',
+          documentType: 'asyncapi',
+        },
+      ],
+    })
+    handler()
+
+    expect(renderApiReferenceSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          sources: [
+            expect.objectContaining({
+              url: 'https://example.com/asyncapi.json',
+              documentType: 'asyncapi',
+            }),
+          ],
+        }),
+      }),
+      '___customTheme___',
+    )
+  })
 })

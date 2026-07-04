@@ -172,6 +172,27 @@ describe('Scalar', () => {
     expect(text).not.toContain('Test API')
   })
 
+  it('preserves the documentType of a source', async () => {
+    const app = new Hono()
+    app.get(
+      '/',
+      Scalar({
+        sources: [
+          {
+            title: 'Streaming API',
+            url: 'https://example.com/asyncapi.json',
+            documentType: 'asyncapi',
+          },
+        ],
+      }),
+    )
+
+    const response = await app.request('/')
+    const text = await response.text()
+    expect(text).toContain('"documentType": "asyncapi"')
+    expect(text).toContain('https://example.com/asyncapi.json')
+  })
+
   it('sets HTML content type and 200 status', async () => {
     const app = new Hono()
     app.get('/', Scalar({}))

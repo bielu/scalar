@@ -111,6 +111,26 @@ describe('apiReference middleware (express)', () => {
     expect(res.text).toContain('Function API')
   })
 
+  it('preserves the documentType of a source', async () => {
+    app.use(
+      '/reference',
+      apiReference({
+        sources: [
+          {
+            title: 'Streaming API',
+            url: 'https://example.com/asyncapi.json',
+            documentType: 'asyncapi',
+          },
+        ],
+      }),
+    )
+
+    const res = await request(app.getHttpServer()).get('/reference')
+
+    expect(res.text).toContain('"documentType": "asyncapi"')
+    expect(res.text).toContain('https://example.com/asyncapi.json')
+  })
+
   it('preserves function properties in configuration', async () => {
     app.use(
       '/reference',
