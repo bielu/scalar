@@ -237,20 +237,54 @@ createApiClientApp(el, {
 })
 ```
 
+For long-lived, bidirectional connections (SignalR, gRPC streaming, MQTT, …) register a `kind: 'channel'` transport instead. `connect` resolves once the connection is established and rejects when it cannot be; incoming traffic is reported through the provided handlers, outgoing traffic and shutdown go through the returned connection:
+
+```ts
+import { HubConnectionBuilder } from '@microsoft/signalr'
+import type { ClientPlugin } from '@scalar/oas-utils/helpers'
+
+const signalRPlugin: ClientPlugin = {
+  transports: [
+    {
+      documentType: 'asyncapi',
+      protocols: ['wss'],
+      transport: {
+        kind: 'channel',
+        connect: async ({ url, handlers }) => {
+          const hub = new HubConnectionBuilder().withUrl(url).build()
+
+          hub.on('message', (data) => handlers.onMessage(JSON.stringify(data)))
+          hub.onclose((error) =>
+            handlers.onClose({ code: error ? 1006 : 1000, wasClean: !error }),
+          )
+
+          await hub.start()
+
+          return {
+            send: (data) => void hub.send('message', data),
+            close: () => void hub.stop(),
+          }
+        },
+      },
+    },
+  ],
+}
+```
+
 Each registration in `transports` supports:
 
 | Property | Description |
 |---|---|
 | `documentType` | Restrict the transport to `openapi` or `asyncapi` documents. Matches both when omitted. |
 | `protocols` | Protocols the transport serves (case-insensitive, a trailing `:` is ignored), for example `['http', 'https']`. |
-| `transport` | The implementation. For `kind: 'http'`, `send(request, context)` receives the built fetch `Request` and returns a `Response`. |
+| `transport` | The implementation: `kind: 'http'` for one-shot request/response, `kind: 'channel'` for long-lived bidirectional connections. |
 
-Because the transport returns a standard `Response`, the entire response pipeline (streaming detection, cookie handling, response body decoding, plugin hooks) keeps working unchanged.
+For `kind: 'http'`, `send(request, context)` receives the built fetch `Request` and returns a standard `Response`, so the entire response pipeline (streaming detection, cookie handling, response body decoding, plugin hooks) keeps working unchanged. For `kind: 'channel'`, the connection is driven through the same session state machine as the built-in WebSocket client, so the message log, connection states, and WebSocket plugin hooks work identically.
 
 A few rules to be aware of:
 
-- The first matching registration in plugin order wins.
-- An app-level `customFetch` option takes precedence over plugin transports.
+- The first matching registration in plugin order wins, and each execution model only considers registrations of its own `kind`.
+- App-level overrides take precedence over plugin transports: the `customFetch` option for requests, an explicit `customWebSocket` for connections.
 - Requests executed through a plugin transport bypass the CORS proxy: transports own their I/O, and the proxy exists to work around browser `fetch` limitations that a custom client does not have.
 
 ## Community

@@ -1,3 +1,4 @@
+export { createChannelTransportSocket } from './helpers/channel-transport-socket'
 export {
   type ConnectWebSocketData,
   type ConnectWebSocketFailureCode,
@@ -10,8 +11,10 @@ export {
 export {
   type WebSocketCloseInfo,
   type WebSocketConnectOptions,
+  type WebSocketConstructorLike,
   type WebSocketFrame,
   type WebSocketFrameOpcode,
+  type WebSocketLike,
   type WebSocketSession,
   type WebSocketSessionCallbacks,
   type WebSocketSessionState,

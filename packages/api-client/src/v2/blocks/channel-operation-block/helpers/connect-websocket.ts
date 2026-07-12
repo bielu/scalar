@@ -12,9 +12,16 @@
 import { type Result, err, ok } from '@scalar/helpers/types/result'
 import { safeRun } from '@scalar/helpers/types/safe-run'
 import type { ClientPlugin } from '@scalar/oas-utils/helpers'
-import { executeWebSocketHook } from '@scalar/oas-utils/helpers'
+import { executeWebSocketHook, normalizeTransportProtocol, resolveChannelTransport } from '@scalar/oas-utils/helpers'
 
-import type { WebSocketCloseInfo, WebSocketFrame, WebSocketSession, WebSocketSessionState } from './websocket-session'
+import { createChannelTransportSocket } from './channel-transport-socket'
+import type {
+  WebSocketCloseInfo,
+  WebSocketConstructorLike,
+  WebSocketFrame,
+  WebSocketSession,
+  WebSocketSessionState,
+} from './websocket-session'
 
 export type ConnectWebSocketOptions = {
   connectionUrl: string
@@ -28,8 +35,8 @@ export type ConnectWebSocketOptions = {
     onClose?: (info: WebSocketCloseInfo) => void
     onOpen?: () => void
   }
-  /** Injectable WebSocket constructor for tests or Electron override */
-  customWebSocket?: typeof WebSocket
+  /** Injectable socket constructor for tests or Electron override. Takes precedence over plugin transports. */
+  customWebSocket?: WebSocketConstructorLike
 }
 
 export type ConnectWebSocketData = {
@@ -47,6 +54,50 @@ export type ConnectWebSocketResult = Result<ConnectWebSocketData, ConnectWebSock
 
 const connectionFailed = (): ConnectWebSocketResult =>
   err(WEBSOCKET_CONNECTION_FAILED, WEBSOCKET_CONNECTION_FAILED_MESSAGE)
+
+/**
+ * Resolves the socket constructor for a connection URL.
+ *
+ * An explicit `customWebSocket` (tests, Electron override) always wins. Otherwise, a
+ * plugin-registered channel transport matching the URL protocol is adapted into the
+ * socket surface — this is how plugins provide clients for protocols the API client
+ * has no built-in support for (SignalR, gRPC streaming, MQTT, …). With no match, the
+ * session falls back to the native WebSocket.
+ */
+const resolveSocketConstructor = (
+  url: string,
+  plugins: ClientPlugin[],
+  customWebSocket?: WebSocketConstructorLike,
+): WebSocketConstructorLike | undefined => {
+  if (customWebSocket) {
+    return customWebSocket
+  }
+
+  const protocol = normalizeTransportProtocol(safeParseProtocol(url))
+
+  if (!protocol) {
+    return undefined
+  }
+
+  // Channel operations are AsyncAPI-only today
+  const documentType = 'asyncapi'
+  const transport = resolveChannelTransport({ documentType, protocol, plugins })
+
+  if (!transport) {
+    return undefined
+  }
+
+  return createChannelTransportSocket(transport, { documentType, protocol })
+}
+
+/** Parses the protocol of a connection URL, or undefined when the URL is not absolute. */
+const safeParseProtocol = (url: string): string | undefined => {
+  try {
+    return new URL(url).protocol
+  } catch {
+    return undefined
+  }
+}
 
 /**
  * Connects a WebSocket session after running plugin `beforeConnect` hooks.
@@ -67,11 +118,14 @@ export const connectWebSocket = async ({
     const beforeConnectResult = await executeWebSocketHook({ url: connectionUrl }, 'beforeConnect', plugins)
     const url = beforeConnectResult.url
 
+    // Resolve after beforeConnect so a hook-rewritten URL selects the transport
+    const socketConstructor = resolveSocketConstructor(url, plugins, customWebSocket)
+
     return new Promise<ConnectWebSocketResult>((resolve) => {
       session.connect({
         url,
         protocols,
-        customWebSocket,
+        customWebSocket: socketConstructor,
         callbacks: {
           onOpen: () => {
             callbacks?.onOpen?.()

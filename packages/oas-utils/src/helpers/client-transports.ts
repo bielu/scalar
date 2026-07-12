@@ -32,12 +32,61 @@ export type HttpTransport = {
   send: (request: Request, context: ClientTransportContext) => Response | Promise<Response>
 }
 
+/** Close metadata reported by a channel transport. Fields follow WebSocket close semantics. */
+export type ChannelCloseInfo = {
+  code?: number
+  reason?: string
+  wasClean?: boolean
+}
+
+/** Callbacks a channel transport invokes to report connection events back to the client. */
+export type ChannelConnectHandlers = {
+  /** Invoke for every message received on the connection. */
+  onMessage: (data: string | ArrayBuffer) => void
+  /** Invoke when the connection errors. Errors after open are advisory; `onClose` owns terminal state. */
+  onError: (error: unknown) => void
+  /** Invoke exactly once when the connection closes (cleanly or due to error). */
+  onClose: (info: ChannelCloseInfo) => void
+}
+
+/** An established channel connection returned by {@link ChannelTransport.connect}. */
+export type ChannelConnection = {
+  /** Send a message over the open connection. */
+  send: (data: string) => void
+  /** Close the connection. Codes follow WebSocket close semantics. */
+  close: (code?: number, reason?: string) => void
+}
+
+/**
+ * A session-based transport for long-lived, bidirectional connections
+ * (SignalR, gRPC streaming, MQTT, …).
+ *
+ * `connect` resolves once the connection is established (for example after
+ * `HubConnection.start()` for SignalR) and rejects when it cannot be. Incoming
+ * traffic is reported through the provided handlers; outgoing traffic and
+ * shutdown go through the returned {@link ChannelConnection}.
+ */
+export type ChannelTransport = {
+  kind: 'channel'
+  connect: (
+    options: {
+      /** The resolved connection URL. */
+      url: string
+      /** Subprotocols requested for the connection, when the caller provides any. */
+      protocols?: string | string[]
+      /** Callbacks to report connection events back to the client. */
+      handlers: ChannelConnectHandlers
+    },
+    context: ClientTransportContext,
+  ) => ChannelConnection | Promise<ChannelConnection>
+}
+
 /**
  * A transport registration on a client plugin.
  *
- * The `kind` discriminator on the transport leaves room for future variants
- * (for example a session-based channel transport for MQTT or Kafka) without
- * changing the registration shape.
+ * The `kind` discriminator selects the execution model: `http` transports serve
+ * one-shot request/response operations, `channel` transports serve long-lived
+ * bidirectional connections.
  */
 export type ClientTransport = {
   /** Restrict the transport to a document flavor. Matches all document types when omitted. */
@@ -45,7 +94,7 @@ export type ClientTransport = {
   /** Protocols this transport serves. Case-insensitive, a trailing `:` is ignored. */
   protocols: string[]
   /** The transport implementation. */
-  transport: HttpTransport
+  transport: HttpTransport | ChannelTransport
 }
 
 /** The subset of a client plugin the transport resolver cares about. */
@@ -65,22 +114,21 @@ export const normalizeTransportProtocol = (protocol: string | undefined): string
   return normalized ? normalized : undefined
 }
 
-/**
- * Resolves the HTTP transport to execute a request with.
- *
- * Plugins are scanned in registration order and the first transport matching both the
- * document type and the protocol wins. Returns `undefined` when no plugin claims the
- * combination, in which case the caller falls back to the built-in engine (global fetch).
- */
-export const resolveHttpTransport = ({
-  documentType,
-  protocol,
-  plugins,
-}: {
+/** Arguments shared by the transport resolvers. */
+type ResolveTransportArgs = {
   documentType: TransportDocumentType
   protocol: string
   plugins: PluginWithTransports[]
-}): HttpTransport | undefined => {
+}
+
+/**
+ * Resolves the first transport of the given kind matching the document type and protocol.
+ * Plugins are scanned in registration order, so the first matching registration wins.
+ */
+const resolveTransport = <Kind extends ClientTransport['transport']['kind']>(
+  kind: Kind,
+  { documentType, protocol, plugins }: ResolveTransportArgs,
+): Extract<ClientTransport['transport'], { kind: Kind }> | undefined => {
   const normalizedProtocol = normalizeTransportProtocol(protocol)
 
   if (!normalizedProtocol) {
@@ -93,15 +141,33 @@ export const resolveHttpTransport = ({
         continue
       }
 
-      if (registration.transport.kind !== 'http') {
+      if (registration.transport.kind !== kind) {
         continue
       }
 
       if (registration.protocols.some((p) => normalizeTransportProtocol(p) === normalizedProtocol)) {
-        return registration.transport
+        return registration.transport as Extract<ClientTransport['transport'], { kind: Kind }>
       }
     }
   }
 
   return undefined
 }
+
+/**
+ * Resolves the HTTP transport to execute a request with.
+ *
+ * Returns `undefined` when no plugin claims the document type and protocol combination,
+ * in which case the caller falls back to the built-in engine (global fetch).
+ */
+export const resolveHttpTransport = (args: ResolveTransportArgs): HttpTransport | undefined =>
+  resolveTransport('http', args)
+
+/**
+ * Resolves the channel transport to establish a connection with.
+ *
+ * Returns `undefined` when no plugin claims the document type and protocol combination,
+ * in which case the caller falls back to the built-in engine (native WebSocket for ws/wss).
+ */
+export const resolveChannelTransport = (args: ResolveTransportArgs): ChannelTransport | undefined =>
+  resolveTransport('channel', args)

@@ -35,12 +35,30 @@ export type WebSocketSessionCallbacks = {
   onOpen?: () => void
 }
 
+/**
+ * The minimal WebSocket surface the session drives. The native `WebSocket` satisfies it,
+ * and so do adapters that bridge plugin channel transports (SignalR, gRPC streaming, …)
+ * into the session without the session knowing the difference.
+ */
+export type WebSocketLike = {
+  binaryType: BinaryType
+  onopen: ((event: Event) => void) | null
+  onmessage: ((event: MessageEvent) => void) | null
+  onerror: ((event: Event) => void) | null
+  onclose: ((event: Event & WebSocketCloseInfo) => void) | null
+  send: (data: string) => void
+  close: (code?: number, reason?: string) => void
+}
+
+/** A constructor producing a {@link WebSocketLike}, e.g. the native `WebSocket`. */
+export type WebSocketConstructorLike = new (url: string, protocols?: string | string[]) => WebSocketLike
+
 export type WebSocketConnectOptions = {
   url: string
   protocols?: string | string[]
   callbacks?: WebSocketSessionCallbacks
-  /** Injectable WebSocket constructor for testing or Electron override */
-  customWebSocket?: typeof WebSocket
+  /** Injectable socket constructor: tests, Electron override, or a plugin channel transport adapter */
+  customWebSocket?: WebSocketConstructorLike
 }
 
 export type WebSocketSession = {
@@ -65,7 +83,7 @@ export type WebSocketSession = {
  */
 export const createWebSocketSession = (): WebSocketSession => {
   let currentState: WebSocketSessionState = 'idle'
-  let socket: WebSocket | null = null
+  let socket: WebSocketLike | null = null
   let callbacks: WebSocketSessionCallbacks = {}
   const frames: WebSocketFrame[] = []
   let closeInfo: WebSocketCloseInfo | null = null
