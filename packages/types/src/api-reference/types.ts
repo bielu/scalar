@@ -1,7 +1,7 @@
 import type { PartialDeep } from 'type-fest'
 
 import type { AvailableClient, ClientId, TargetId } from '../snippetz'
-import type { PluginAuthState } from './api-reference-plugin'
+import type { CodeBlockRenderer, PluginAuthState } from './api-reference-plugin'
 
 /** Some common properties used in all security schemes */
 type SecuirtySchemeCommon = {
@@ -225,6 +225,8 @@ export type ApiReferencePlugin = () => {
   }
   hooks?: LifecycleHooks
   apiClientPlugins?: any[]
+  /** Renderers for fenced Markdown code blocks, keyed by language. */
+  codeBlockRenderers?: Record<string, CodeBlockRenderer>
 }
 
 export type ExternalUrls = {

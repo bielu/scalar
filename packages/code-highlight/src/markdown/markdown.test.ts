@@ -48,6 +48,25 @@ describe('htmlFromMarkdown', () => {
     expect(html.trim()).toEqual('<h1 id="example-heading">Example Heading</h1>')
   })
 
+  it('preserves whitespace and skips highlighting for noHighlightLanguages code blocks', () => {
+    const html = htmlFromMarkdown('```mermaid\nflowchart TD\n  a --> b\n  b --> c\n```', {
+      noHighlightLanguages: ['mermaid'],
+    })
+
+    expect(html).toContain('class="no-highlight language-mermaid"')
+    expect(html).toContain('flowchart TD\n  a --> b\n  b --> c')
+    // Never syntax-highlighted: no hljs span wrappers.
+    expect(html).not.toContain('hljs-')
+  })
+
+  it('leaves other languages unaffected by noHighlightLanguages', () => {
+    const html = htmlFromMarkdown('```mermaid\nflowchart TD\n```', {
+      noHighlightLanguages: ['plantuml'],
+    })
+
+    expect(html).not.toContain('no-highlight')
+  })
+
   // HTML Sanitization Tests
   it('removes iframe tags to prevent embedding attacks', () => {
     const html = htmlFromMarkdown('<iframe src="https://malicious-site.com"></iframe>Some content')

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import { ScalarWrappingText } from '@scalar/components/wrapping-text'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
 import {
@@ -22,6 +21,7 @@ import {
 import { isTypeObject } from '@/components/Content/Schema/helpers/is-type-object'
 import { getCycleKey } from '@/components/Content/Schema/helpers/schema-cycle'
 import type { SchemaOptions } from '@/components/Content/Schema/types'
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import { SpecificationExtension } from '@/features/specification-extension'
 
 import { getCompositionsToRender } from './helpers/get-compositions-to-render'

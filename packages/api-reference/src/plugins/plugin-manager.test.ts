@@ -491,4 +491,49 @@ describe('plugin-manager', () => {
       expect(onConfigChange).toHaveBeenCalledWith({ config: { theme: 'light' }, auth })
     })
   })
+
+  describe('getCodeBlockRenderers', () => {
+    it('returns an empty object when no plugins have renderers', () => {
+      const manager = createPluginManager({})
+      expect(manager.getCodeBlockRenderers()).toEqual({})
+    })
+
+    it('merges renderers from multiple plugins', () => {
+      const mermaidRenderer = vi.fn()
+      const plantumlRenderer = vi.fn()
+      const mermaidPlugin: ApiReferencePlugin = () => ({
+        name: 'mermaid',
+        extensions: [],
+        codeBlockRenderers: { mermaid: mermaidRenderer },
+      })
+      const plantumlPlugin: ApiReferencePlugin = () => ({
+        name: 'plantuml',
+        extensions: [],
+        codeBlockRenderers: { plantuml: plantumlRenderer },
+      })
+
+      const manager = createPluginManager({ plugins: [mermaidPlugin, plantumlPlugin] })
+
+      expect(manager.getCodeBlockRenderers()).toEqual({ mermaid: mermaidRenderer, plantuml: plantumlRenderer })
+    })
+
+    it('resolves a language collision to the first-registered plugin', () => {
+      const firstRenderer = vi.fn()
+      const secondRenderer = vi.fn()
+      const firstPlugin: ApiReferencePlugin = () => ({
+        name: 'first',
+        extensions: [],
+        codeBlockRenderers: { mermaid: firstRenderer },
+      })
+      const secondPlugin: ApiReferencePlugin = () => ({
+        name: 'second',
+        extensions: [],
+        codeBlockRenderers: { mermaid: secondRenderer },
+      })
+
+      const manager = createPluginManager({ plugins: [firstPlugin, secondPlugin] })
+
+      expect(manager.getCodeBlockRenderers()).toEqual({ mermaid: firstRenderer })
+    })
+  })
 })

@@ -58,6 +58,9 @@
     "packages/types/src/openapi/3.1/index.generated.ts": ["types"],
     // Public extension type namespaces are consumed via @scalar/types/extensions/* package exports
     "packages/types/src/extensions/**/*.ts": ["types", "exports"],
+    // Consumed by @scalar/api-reference's ScalarMarkdown wrapper via the @scalar/components/markdown
+    // subpath export — a cross-package type-only import knip cannot trace
+    "packages/components/src/components/ScalarMarkdown/index.ts": ["types"],
     // The v3.2 schemas mirror v3.1 as a superset. These exports are used by their v3.1 counterparts
     // (resolve.ts, navigation.ts, and the openapi-types codegen script) and become used once the
     // store is wired to v3.2. Until then knip cannot see a consumer.

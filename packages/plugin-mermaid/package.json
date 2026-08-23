@@ -1,6 +1,6 @@
 {
   "name": "@scalar/plugin-mermaid",
-  "description": "Renders Mermaid diagrams for any x-mermaid specification extension in the API Reference, without adding Mermaid to the core bundle",
+  "description": "Renders Mermaid diagrams from x-mermaid specification extensions and fenced ```mermaid code blocks in the API Reference, without adding Mermaid to the core bundle",
   "license": "MIT",
   "author": "Scalar (https://github.com/scalar)",
   "homepage": "https://github.com/scalar/scalar",
@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "catalog:*",
+    "jsdom": "catalog:*",
     "vite": "catalog:*",
     "vue": "catalog:*"
   }

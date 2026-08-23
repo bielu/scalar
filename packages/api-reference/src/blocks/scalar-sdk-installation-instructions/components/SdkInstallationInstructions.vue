@@ -5,7 +5,6 @@ import {
   type ScalarComboboxOption,
 } from '@scalar/components/combobox'
 import { ScalarIcon } from '@scalar/components/icon'
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import { type WorkspaceEventBus } from '@scalar/workspace-store/events'
 import type { XScalarSdkInstallation } from '@scalar/workspace-store/schemas/extensions/document/x-scalar-sdk-installation'
 import {
@@ -18,6 +17,7 @@ import {
   watch,
 } from 'vue'
 
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import { useLocalization } from '@/features/localization'
 
 import { getLanguageIcon } from '../helpers/language-icon'

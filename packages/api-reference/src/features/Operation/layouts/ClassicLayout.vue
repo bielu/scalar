@@ -2,7 +2,6 @@
 import { CodeExample } from '@scalar/blocks/code-example'
 import { ScalarErrorBoundary } from '@scalar/components/error-boundary'
 import { ScalarIconButton } from '@scalar/components/icon-button'
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import {
   ScalarIconCopy,
   ScalarIconPlay,
@@ -23,6 +22,7 @@ import { Badge } from '@/components/Badge'
 import { HttpMethod } from '@/components/HttpMethod'
 import { LinkList } from '@/components/LinkList'
 import OperationPath from '@/components/OperationPath.vue'
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import { SectionAccordion } from '@/components/Section'
 import { ExampleResponses } from '@/features/example-responses'
 import { ExternalDocs } from '@/features/external-docs'

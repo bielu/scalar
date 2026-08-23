@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import type { AsyncApiDocument } from '@scalar/types/asyncapi/3.1'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
 import type {
@@ -9,6 +8,7 @@ import type {
 import { computed, useId, useTemplateRef } from 'vue'
 
 import { Anchor } from '@/components/Anchor'
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import { SectionHeaderTag } from '@/components/Section'
 import OperationScopes from '@/features/Operation/components/OperationScopes.vue'
 import { useIntersection } from '@/hooks/use-intersection'

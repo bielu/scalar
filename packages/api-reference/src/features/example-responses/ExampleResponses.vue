@@ -6,7 +6,6 @@ import {
   ScalarCardSection,
 } from '@scalar/components/card'
 import { ScalarIcon } from '@scalar/components/icon'
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import { objectKeys } from '@scalar/helpers/object/object-keys'
 import { useClipboard } from '@scalar/use-hooks/useClipboard'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
@@ -18,6 +17,7 @@ import type {
 } from '@scalar/workspace-store/schemas/v3.1/strict/openapi-document'
 import { computed, ref, toValue, useId, watch } from 'vue'
 
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import ScreenReader from '@/components/ScreenReader.vue'
 import ExampleSchema from '@/features/example-responses/ExampleSchema.vue'
 import { useLocalization } from '@/features/localization'

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { useColorMode } from '@scalar/use-hooks/useColorMode'
-import { onMounted, ref, useId, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+
+import {
+  nextMermaidElementId,
+  renderMermaidToSvg,
+} from './helpers/render-mermaid'
 
 const props = defineProps<{
   /**
@@ -13,16 +18,10 @@ const props = defineProps<{
 
 const { isDarkMode } = useColorMode()
 
-const elementId = `mermaid-${useId()}`
+const elementId = nextMermaidElementId()
 const svg = ref<string>('')
 const error = ref<string>('')
 
-/**
- * Renders the diagram source into `svg`. `mermaid` is dynamically imported here rather than at
- * module scope, so it is only ever fetched/parsed when a document actually uses `x-mermaid` and
- * this component mounts — consumers who never register this plugin, and documents that never use
- * the extension, pay nothing for it.
- */
 const render = async () => {
   const source = typeof props.xMermaid === 'string' ? props.xMermaid : ''
   if (!source.trim()) {
@@ -31,23 +30,13 @@ const render = async () => {
     return
   }
 
-  try {
-    const { default: mermaid } = await import('mermaid')
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: 'strict',
-      theme: isDarkMode.value ? 'dark' : 'default',
-    })
-    const result = await mermaid.render(elementId, source)
-    svg.value = result.svg
-    error.value = ''
-  } catch (cause) {
-    svg.value = ''
-    error.value =
-      cause instanceof Error
-        ? cause.message
-        : 'Failed to render Mermaid diagram.'
-  }
+  const result = await renderMermaidToSvg(
+    source,
+    elementId,
+    isDarkMode.value ? 'dark' : 'default',
+  )
+  svg.value = result.svg ?? ''
+  error.value = result.error ?? ''
 }
 
 onMounted(render)

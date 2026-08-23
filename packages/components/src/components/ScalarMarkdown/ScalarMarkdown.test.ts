@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import ScalarMarkdown from './ScalarMarkdown.vue'
 
@@ -119,6 +119,66 @@ describe('ScalarMarkdown', () => {
     expect(wrapper.find('img').exists()).toBe(true)
     expect(wrapper.find('img').attributes('alt')).toBe('Jupiter with Great Red Spot')
     expect(wrapper.find('img').attributes('src')).toBe('https://cdn.scalar.com/photos/jupiter.jpg')
+  })
+
+  describe('codeBlockRenderers', () => {
+    it('calls the matching renderer with the block source and element', () => {
+      const calls: Array<{ source: string; tagName: string }> = []
+
+      mount(ScalarMarkdown, {
+        props: {
+          value: '```mermaid\nflowchart TD\n  a --> b\n```',
+          codeBlockRenderers: {
+            mermaid: (source, element) => {
+              calls.push({ source, tagName: element.tagName })
+            },
+          },
+        },
+      })
+
+      expect(calls).toEqual([{ source: 'flowchart TD\n  a --> b', tagName: 'CODE' }])
+    })
+
+    it('does not call a renderer for a non-matching language', () => {
+      const renderer = vi.fn()
+
+      mount(ScalarMarkdown, {
+        props: {
+          value: '```json\n{}\n```',
+          codeBlockRenderers: { mermaid: renderer },
+        },
+      })
+
+      expect(renderer).not.toHaveBeenCalled()
+    })
+
+    it('leaves the code block as a plain, unrendered element when no renderer is registered', () => {
+      const wrapper = mount(ScalarMarkdown, {
+        props: {
+          value: '```mermaid\nflowchart TD\n  a --> b\n```',
+        },
+      })
+
+      expect(wrapper.find('code').text()).toContain('flowchart TD')
+    })
+
+    it('re-renders when value changes', async () => {
+      const renderer = vi.fn()
+
+      const wrapper = mount(ScalarMarkdown, {
+        props: {
+          value: '```mermaid\nflowchart TD\n  a --> b\n```',
+          codeBlockRenderers: { mermaid: renderer },
+        },
+      })
+
+      expect(renderer).toHaveBeenCalledTimes(1)
+
+      await wrapper.setProps({ value: '```mermaid\nflowchart TD\n  a --> c\n```' })
+
+      expect(renderer).toHaveBeenCalledTimes(2)
+      expect(renderer).toHaveBeenLastCalledWith('flowchart TD\n  a --> c', expect.any(HTMLElement))
+    })
   })
 
   it('parses inline markdown in HTML paragraphs', () => {

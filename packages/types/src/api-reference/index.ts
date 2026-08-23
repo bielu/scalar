@@ -1,4 +1,5 @@
 export type {
+  CodeBlockRenderer,
   PluginAuthSecrets,
   PluginAuthState,
   PluginDocumentAuth,

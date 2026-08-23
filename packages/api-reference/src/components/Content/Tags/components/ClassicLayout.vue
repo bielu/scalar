@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
 import type { TraversedTag } from '@scalar/workspace-store/schemas/navigation'
 
 import { Anchor } from '@/components/Anchor'
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import {
   SectionContainerAccordion,
   SectionHeader,

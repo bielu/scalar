@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { ScalarIcon } from '@scalar/components/icon'
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
 import { pushDynamicScope } from '@scalar/workspace-store/helpers/dynamic-ref'
 import { resolve } from '@scalar/workspace-store/resolve'
@@ -12,6 +11,7 @@ import type {
 import { computed, inject, provide } from 'vue'
 
 import type { SchemaOptions } from '@/components/Content/Schema/types'
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import ScreenReader from '@/components/ScreenReader.vue'
 import { useLocalization } from '@/features/localization'
 import { scrollTargetId } from '@/helpers/lazy-bus'

@@ -132,6 +132,21 @@ const lifecycleHooksSchema = z.object({
   onDestroy: z.function({ input: [] }).optional(),
 })
 
+/**
+ * Renders a fenced code block's source into the given element after the surrounding Markdown has
+ * mounted. Same contract as `ScalarMarkdown`'s own `codeBlockRenderers` prop (in
+ * `@scalar/components`), declared independently here rather than imported — `@scalar/types`
+ * doesn't depend on `@scalar/components`, and the two are expected to stay structurally
+ * compatible rather than share a type.
+ */
+export type CodeBlockRenderer = (source: string, element: HTMLElement) => void | Promise<void>
+
+// `z.custom`, not `z.function` — a function schema nested inside `z.record` does not survive
+// `z.infer` correctly once consumed through a compiled `.d.ts` from another package (the type
+// collapses back to `unknown` for downstream consumers, even though it infers fine in-source).
+// Matches `pluginAuthStateSchema`'s own escape hatch, just below.
+const codeBlockRendererSchema = z.custom<CodeBlockRenderer>()
+
 export const apiReferencePluginSchema = z.function({
   input: [],
   output: z.object({
@@ -150,6 +165,11 @@ export const apiReferencePluginSchema = z.function({
      * Use this to extend the API client from an API reference plugin.
      */
     apiClientPlugins: z.array(z.any()).optional(),
+    /**
+     * Renderers for fenced Markdown code blocks, keyed by language (the fence info string, e.g.
+     * `mermaid` for ` ```mermaid `). Wired into every `ScalarMarkdown` in the API Reference.
+     */
+    codeBlockRenderers: z.record(z.string(), codeBlockRendererSchema).optional(),
   }),
 })
 

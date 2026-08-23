@@ -18,6 +18,7 @@ import { computed, ref } from 'vue'
 vi.mock('@/plugins/hooks/usePluginManager', () => ({
   usePluginManager: () => ({
     getSpecificationExtensions: vi.fn(),
+    getCodeBlockRenderers: vi.fn().mockReturnValue({}),
   }),
 }))
 

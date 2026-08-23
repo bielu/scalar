@@ -23,12 +23,12 @@ export default {}
 
 <script lang="ts" setup>
 import { ServerVariablesForm } from '@scalar/api-client/components/Server'
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import type { AsyncApiServerEntry } from '@scalar/workspace-store/channel-example'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
 import { getResolvedRef } from '@scalar/workspace-store/helpers/get-resolved-ref'
 import { computed, useId } from 'vue'
 
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import { useLocalization } from '@/features/localization'
 
 import Selector from './Selector.vue'

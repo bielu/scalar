@@ -16,6 +16,7 @@ import { SKIP, visit } from 'unist-util-visit'
 import { standardLanguages } from '@/languages'
 import { rehypeAlert } from '@/rehype-alert'
 import { rehypeHighlight } from '@/rehype-highlight'
+import { rehypePreserveCodeBlocks } from '@/rehype-preserve-code-blocks'
 
 type Options = {
   transform?: (node: Node) => Node
@@ -136,6 +137,13 @@ export function htmlFromMarkdown(
     allowTags?: string[]
     transform?: (node: Node) => Node
     transformType?: string
+    /**
+     * Fenced code block languages whose source must survive untouched — no syntax highlighting,
+     * no whitespace reformatting. Intended for a language a caller renders itself after mount
+     * (see `ScalarMarkdown`'s `codeBlockRenderers` prop), where reformatted whitespace would
+     * break parsing (e.g. Mermaid).
+     */
+    noHighlightLanguages?: string[]
   },
 ) {
   // Add permitted tags and remove stripped ones
@@ -161,6 +169,8 @@ export function htmlFromMarkdown(
     .use(transformInlineMarkdownInRawHtml)
     // Creates an HTML AST
     .use(rehypeRaw)
+    // Protects caller-rendered code blocks (e.g. Mermaid) from highlighting and reformatting
+    .use(rehypePreserveCodeBlocks, options?.noHighlightLanguages ?? [])
     // Removes disallowed tags
     .use(rehypeSanitize, {
       ...defaultSchema,
@@ -171,6 +181,10 @@ export function htmlFromMarkdown(
       attributes: {
         ...defaultSchema.attributes,
         abbr: ['title'],
+        // The default schema only allows `class="language-*"` on `<code>` — extend it to also
+        // allow `no-highlight` (added by `rehypePreserveCodeBlocks`, above), or it gets silently
+        // stripped here before `rehypeHighlight` ever sees it.
+        code: [['className', /^language-./, 'no-highlight']],
         // Allow all class names while preserving the existing default attributes
         '*': [...(defaultSchema.attributes?.['*'] ?? []), 'className'],
       },

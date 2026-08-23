@@ -1,5 +1,6 @@
 import type { ClientPlugin } from '@scalar/oas-utils/helpers'
 import type {
+  CodeBlockRenderer,
   ApiReferencePlugin as OriginalApiReferencePlugin,
   PluginAuthState,
   SpecificationExtension,
@@ -93,6 +94,27 @@ export const createPluginManager = ({ plugins = [], auth }: CreatePluginManagerP
       }
 
       return extensions
+    },
+
+    /**
+     * Get the merged code block renderers from all registered plugins, keyed by language.
+     *
+     * On a collision (two plugins registering the same language) the first-registered plugin
+     * wins — unlike `getSpecificationExtensions`, only one renderer can actually run per code
+     * block, so this can't just concatenate.
+     */
+    getCodeBlockRenderers: (): Record<string, CodeBlockRenderer> => {
+      const renderers: Record<string, CodeBlockRenderer> = {}
+
+      for (const plugin of registeredPlugins.values()) {
+        for (const [language, renderer] of Object.entries(plugin.codeBlockRenderers ?? {})) {
+          if (!(language in renderers)) {
+            renderers[language] = renderer
+          }
+        }
+      }
+
+      return renderers
     },
 
     /**

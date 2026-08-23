@@ -19,7 +19,7 @@ import {
   textFromNode,
 } from '@scalar/code-highlight'
 import { useBindCx } from '@scalar/use-hooks/useBindCx'
-import { computed, useTemplateRef } from 'vue'
+import { computed, onMounted, useTemplateRef, watch } from 'vue'
 
 import type { ScalarMarkdownProps } from './types'
 
@@ -30,6 +30,7 @@ const {
   withImages = false,
   withAnchors = false,
   anchorPrefix,
+  codeBlockRenderers,
 } = defineProps<ScalarMarkdownProps>()
 
 const { cx } = useBindCx()
@@ -76,8 +77,36 @@ const html = computed(() => {
     transform:
       withAnchors && transformType === 'heading' ? transformHeading : transform,
     transformType,
+    noHighlightLanguages: Object.keys(codeBlockRenderers ?? {}),
   })
 })
+
+/**
+ * Calls each registered renderer for its matching code blocks. `v-html` produces plain DOM, not
+ * live Vue components, so this is the only way to render into it — an imperative pass over the
+ * markup after each update, mirroring `htmlFromMarkdown`'s `noHighlightLanguages` option above
+ * (whose only purpose is to keep these blocks' source intact for this to read).
+ */
+const renderCodeBlocks = () => {
+  const root = templateRef.value
+  if (!root || !codeBlockRenderers) {
+    return
+  }
+
+  for (const [language, renderer] of Object.entries(codeBlockRenderers)) {
+    const elements = root.querySelectorAll<HTMLElement>(
+      `pre > code.language-${language}`,
+    )
+    elements.forEach((element) => {
+      // Trim the fence's trailing newline (CommonMark preserves it as part of the block's
+      // content) — an incidental artifact of the fence syntax, not something a renderer expects.
+      renderer((element.textContent ?? '').trim(), element)
+    })
+  }
+}
+
+onMounted(renderCodeBlocks)
+watch(html, renderCodeBlocks, { flush: 'post' })
 </script>
 <template>
   <div

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ScalarMarkdown } from '@scalar/components/markdown'
 import type { ApiReferenceConfigurationRaw } from '@scalar/types/api-reference'
 import type { AsyncApiDocument } from '@scalar/types/asyncapi/3.1'
 import type { WorkspaceEventBus } from '@scalar/workspace-store/events'
@@ -10,6 +9,7 @@ import type {
 import { computed, useId } from 'vue'
 
 import { Anchor } from '@/components/Anchor'
+import { ScalarMarkdown } from '@/components/ScalarMarkdown'
 import {
   Section,
   SectionContainer,
