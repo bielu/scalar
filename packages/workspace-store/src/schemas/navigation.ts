@@ -1,5 +1,6 @@
 import { HTTP_METHODS, type HttpMethod } from '@scalar/helpers/http/http-methods'
 import { type TLiteral, Type } from '@scalar/typebox'
+import type { ArazzoInfoObject } from '@scalar/types/arazzo/1.1'
 import type { AsyncApiInfoObject } from '@scalar/types/asyncapi/3.1'
 
 import { compose } from '@/schemas/compose'
@@ -175,6 +176,58 @@ export type TraversedAsyncApiMessage = BaseSchema & {
   channelName: string
 }
 
+export const TraversedArazzoWorkflowSchemaDefinition = compose(
+  NavigationBaseSchemaDefinition,
+  Type.Object({
+    type: Type.Literal('arazzo-workflow'),
+    workflowId: Type.String(),
+    dependsOn: Type.Optional(Type.Array(Type.String())),
+    children: Type.Optional(Type.Array(TraversedEntryObjectRef)),
+  }),
+)
+
+/**
+ * An entry representing an Arazzo workflow in the navigation structure.
+ */
+export type TraversedArazzoWorkflow = BaseSchema & {
+  type: 'arazzo-workflow'
+  /** Key used for routing/lookup; matches `workflow.workflowId`. */
+  workflowId: string
+  /** WorkflowIds that must complete before this workflow runs — execution order, not display order. */
+  dependsOn?: string[]
+  /** Steps in this workflow */
+  children?: TraversedEntry[]
+}
+
+export const TraversedArazzoStepSchemaDefinition = compose(
+  NavigationBaseSchemaDefinition,
+  Type.Object({
+    type: Type.Literal('arazzo-step'),
+    stepId: Type.String(),
+    workflowId: Type.String(),
+    operationId: Type.Optional(Type.String()),
+    operationPath: Type.Optional(Type.String()),
+    channelPath: Type.Optional(Type.String()),
+    targetWorkflowId: Type.Optional(Type.String()),
+  }),
+)
+
+/**
+ * An entry representing an Arazzo step in the navigation structure.
+ */
+export type TraversedArazzoStep = BaseSchema & {
+  type: 'arazzo-step'
+  /** Key used for routing/lookup; matches `step.stepId`. */
+  stepId: string
+  /** Parent workflow's `workflowId`, for routing. */
+  workflowId: string
+  operationId?: string
+  operationPath?: string
+  channelPath?: string
+  /** Present when the step invokes another workflow (`ArazzoStepObject.workflowId`). */
+  targetWorkflowId?: string
+}
+
 export const TraversedSchemaSchemaDefinition = compose(
   NavigationBaseSchemaDefinition,
   Type.Object({
@@ -273,6 +326,8 @@ export const TraversedEntrySchemaDefinition = Type.Union([
   TraversedAsyncApiOperationSchemaDefinition,
   TraversedAsyncApiChannelSchemaDefinition,
   TraversedAsyncApiMessageSchemaDefinition,
+  TraversedArazzoWorkflowSchemaDefinition,
+  TraversedArazzoStepSchemaDefinition,
   TraversedSchemaSchemaDefinition,
   TraversedTagSchemaDefinition,
   TraversedWebhookSchemaDefinition,
@@ -287,6 +342,8 @@ export type TraversedEntry =
   | TraversedAsyncApiOperation
   | TraversedAsyncApiChannel
   | TraversedAsyncApiMessage
+  | TraversedArazzoWorkflow
+  | TraversedArazzoStep
   | TraversedSchema
   | TraversedTag
   | TraversedWebhook
@@ -305,12 +362,12 @@ export type WithParent<Entry extends TraversedEntry> = Entry & {
 
 export type DocumentIdProps = {
   name: string
-  info: InfoObject | AsyncApiInfoObject
+  info: InfoObject | AsyncApiInfoObject | ArazzoInfoObject
   type: 'document'
 }
 
 type DescriptionIdProps = {
-  info: InfoObject | AsyncApiInfoObject
+  info: InfoObject | AsyncApiInfoObject | ArazzoInfoObject
   type: 'text'
   slug?: string
   depth?: number
@@ -393,6 +450,18 @@ type AsyncApiMessageProps = {
   type: 'asyncapi-message'
 }
 
+type ArazzoWorkflowProps = {
+  parentId: string
+  workflowId: string
+  type: 'arazzo-workflow'
+}
+
+type ArazzoStepProps = {
+  parentId: string
+  stepId: string
+  type: 'arazzo-step'
+}
+
 export type IdGeneratorProps =
   | DocumentIdProps
   | DescriptionIdProps
@@ -401,6 +470,8 @@ export type IdGeneratorProps =
   | AsyncApiOperationProps
   | AsyncApiChannelProps
   | AsyncApiMessageProps
+  | ArazzoWorkflowProps
+  | ArazzoStepProps
   | WebhookProps
   | ModelProps
   | ExampleProps

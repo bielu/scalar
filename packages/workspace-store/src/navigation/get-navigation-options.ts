@@ -85,6 +85,16 @@ export const getNavigationOptions = (documentName: string, options?: NavigationO
       return `${props.parentId}/asyncapi-operation/${slugify(props.operationName)}`
     }
 
+    // -------- Default Arazzo workflow id generation logic --------
+    if (props.type === 'arazzo-workflow') {
+      return `${props.parentId}/arazzo-workflow/${slugify(props.workflowId)}`
+    }
+
+    // -------- Default Arazzo step id generation logic --------
+    if (props.type === 'arazzo-step') {
+      return `${props.parentId}/arazzo-step/${slugify(props.stepId)}`
+    }
+
     // -------- Default operation id generation logic --------
     if (props.type === 'operation') {
       const prefixTag = props.parentTag

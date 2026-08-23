@@ -29,7 +29,7 @@ import { getFetch } from '@/helpers/get-fetch'
 import { mergeObjects } from '@/helpers/merge-object'
 import { createOverridesProxy } from '@/helpers/overrides-proxy'
 import { unpackProxyObject } from '@/helpers/unpack-proxy'
-import { createNavigation, traverseAsyncApiDocument } from '@/navigation'
+import { createNavigation, traverseArazzoDocument, traverseAsyncApiDocument } from '@/navigation'
 import type { NavigationOptions } from '@/navigation/get-navigation-options'
 import {
   externalValueResolver,
@@ -1040,9 +1040,10 @@ export const createWorkspaceStore = (workspaceProps?: WorkspaceProps): Workspace
       )
       withMeasurementSync('mergeObjects', () => mergeObjects(arazzoDocument, coerced))
 
-      // Navigation traversal (`traverseArazzoDocument`) lands in a follow-up PR. Until then the
-      // document ingests and is addressable via `isArazzoDocument`, but contributes no sidebar
-      // entries — `x-scalar-navigation` is left unset.
+      if (arazzoDocument[extensions.document.navigation] === undefined) {
+        const navigation = traverseArazzoDocument(name, arazzoDocument, navigationOptions)
+        arazzoDocument[extensions.document.navigation] = navigation
+      }
 
       workspace.documents[name] = createOverridesProxy(arazzoDocument, {
         overrides: unpackProxyObject(overrides[name]),

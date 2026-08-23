@@ -1,3 +1,4 @@
+import type { ArazzoInfoObject } from '@scalar/types/arazzo/1.1'
 import type { AsyncApiInfoObject } from '@scalar/types/asyncapi/3.1'
 
 import { getHeadingsFromMarkdown, getLowestHeadingLevel } from '@/navigation/helpers/utils'
@@ -13,7 +14,7 @@ const DEFAULT_DESCRIPTION_ENTRY = {
 const getDefaultDescriptionEntry = (
   generateId: TraverseSpecOptions['generateId'],
   parentId: string,
-  info: InfoObject | AsyncApiInfoObject,
+  info: InfoObject | AsyncApiInfoObject | ArazzoInfoObject,
 ) => {
   const id = generateId({
     type: 'text',
@@ -57,7 +58,7 @@ export const traverseDescription = ({
 }: {
   generateId: TraverseSpecOptions['generateId']
   parentId: string
-  info: InfoObject | AsyncApiInfoObject
+  info: InfoObject | AsyncApiInfoObject | ArazzoInfoObject
 }): TraversedDescription[] => {
   const description = info.description?.trim()
 

@@ -4417,9 +4417,18 @@ describe('create-workspace-store', () => {
       expect(document?.['x-scalar-original-document-hash']).not.toBe('')
       expect(document).not.toHaveProperty('openapi')
       expect(document).not.toHaveProperty('asyncapi')
-      // Navigation traversal (`traverseArazzoDocument`) lands in a follow-up PR — until then
-      // ingestion leaves `x-scalar-navigation` unset rather than fabricating an empty tree.
-      expect(document?.['x-scalar-navigation']).toBeUndefined()
+      // Navigation traversal populates x-scalar-navigation with a workflow entry for each
+      // workflow, and a step entry for each of its steps.
+      expect(document?.['x-scalar-navigation']).toMatchObject({
+        type: 'document',
+        children: expect.arrayContaining([
+          expect.objectContaining({
+            type: 'arazzo-workflow',
+            workflowId: 'loginUserAndRetrievePet',
+            children: [expect.objectContaining({ type: 'arazzo-step', stepId: 'loginStep' })],
+          }),
+        ]),
+      })
     })
 
     it('is addressable via isArazzoDocument and getDocumentType', async () => {
